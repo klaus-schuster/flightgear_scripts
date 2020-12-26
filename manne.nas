@@ -114,9 +114,10 @@ list1 = setlistener("/_manne/PHASE", func {
 		var dest_runway = getprop("autopilot/route-manager/destination/runway");
 		var runways = airportinfo(getprop("autopilot/route-manager/destination/airport")).runways;
 		var r = runways[dest_runway];
+		var freq = (r.ils.frequency / 100);
 		if (r != nil and r.ils != nil) {
-			setprop("instrumentation/nav/frequencies/selected-mhz", (r.ils.frequency / 100));
-			setprop("/sim/messages/copilot", "Setting ILS Frequency for approach!");
+			setprop("instrumentation/nav/frequencies/selected-mhz", freq);
+			setprop("/sim/messages/copilot", "Setting ILS Frequency " ~ sprintf("%.2f", freq) ~ " for approach!");
 
 			list3 = setlistener("instrumentation/nav/radials/target-radial-deg", func {
 				setprop("instrumentation/nav/radials/selected-deg", getprop("instrumentation/nav/radials/target-radial-deg"));
@@ -157,9 +158,10 @@ list1 = setlistener("/_manne/PHASE", func {
 
 		}
 		if (aircraft == "A330") {
-			setprop("/controls/lighting/landing-lights[1]",1);
+			setprop("/controls/switches/landing-lights",1);
 			setprop("/controls/lighting/taxi-light-switch",1);
 		}		
+
 
 		# autobrake und speedbrake armed fehlt noch
 		
@@ -217,7 +219,7 @@ list1 = setlistener("/_manne/PHASE", func {
 			}, 60);
 			
 			settimer(func(){
-				setprop("/controls/lighting/landing-lights[1]",0); # after 10 seconds
+				setprop("/controls/switches/landing-lights",0); # after 10 seconds
 				setprop("/sim/messages/copilot","Landing lights off");
 				setprop("/controls/lighting/taxi-light-switch",0); # after 10 seconds
 				setprop("/sim/messages/copilot","Taxi lights off");
