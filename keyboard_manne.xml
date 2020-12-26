@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<PropertyList>
+	<input>
+
+		<keyboard>	
+		<multikey include="multikey_manne.xml"/>  <!-- Does not have to specifically be "aircraft-multikey.xml" -->	
+		<key n="60">
+				<name>kleiner</name>
+				<desc>Reset the current view</desc>
+				    <binding>
+					 <command>nasal</command>
+					 <script>
+					    <![CDATA[
+					    setprop("/sim/current-view/view-number", 0);            
+					    view.resetView();
+					    setprop("/sim/messages/pilot", "Isch gucke geradeaus!");
+					    ]]>
+					 </script>
+					 <command>property-assign</command>
+					 <property>/sim/current-view/field-of-view</property>
+					 <property>/sim/view/config/default-field-of-view-deg</property>
+				      </binding>
+		</key>
+			
+		</keyboard>
+	</input>
+	
+	
+	<menu>
+		<name>manne</name>
+
+		<item>
+			<name>manne_setup</name>
+			<binding>
+				<command>dialog-show</command>
+				<dialog-name>manne</dialog-name>
+			</binding>
+		</item>
+		
+	</menu>
+	
+	
+</PropertyList>

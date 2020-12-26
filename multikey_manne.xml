@@ -1,0 +1,396 @@
+<PropertyList>
+	<key n="109">         <!-- n is a key code -->
+		<name>m</name>    <!-- Name of the key -->
+		<desc>Mannes Multikeys</desc>   <!-- Short description of what the key will do -->
+
+			<key n="113">
+			<name>q</name>
+			<desc>Set the QNH to local Airport</desc>
+			<exit/>
+				<binding>
+				<command>nasal</command>
+					<script>
+						<![CDATA[
+						# Set QNH
+						debug.dump("Set QNH");
+						var ist_pressure_setting = getprop("/instrumentation/altimeter/setting-inhg");
+						var soll_pressure_setting = getprop("/environment/metar/pressure-inhg");
+						var metar_station = getprop("/environment/metar/station-id");
+
+						if (ist_pressure_setting != soll_pressure_setting) {
+
+						setprop("/instrumentation/altimeter/setting-inhg", soll_pressure_setting); 
+
+						setprop("/sim/messages/pilot", sprintf("Setting QNH to %d. %s elevation is: %d feet.",math.round(getprop("/instrumentation/altimeter/setting-hpa")),metar_station,getprop("/environment/metar/station-elevation-ft"))); 
+						}
+						]]>
+					</script>
+				</binding>
+			</key>
+			
+			<key n="115">
+			<name>s</name>
+			<desc>Set phase to START</desc>
+			<exit/>
+				<binding>
+				<command>nasal</command>
+					<script>
+						<![CDATA[
+						setprop("/_manne/PHASE","START");
+						]]>
+					</script>
+				</binding>
+			</key>
+
+
+			<key n="116">
+				<name>t</name>
+				<desc>Set Take-Off Config</desc>
+				<exit/>
+
+			<binding>
+				<command>nasal</command>
+         			<script>
+           			 <![CDATA[
+          			
+
+				var aircraft = getprop("/sim/aero");
+
+                setprop("_manne/PHASE", "START");
+  
+				# Check Landing Lights
+				  
+
+				  debug.dump("Check Landing Lights");
+				  
+				
+				if (aircraft == "747-8i")  {
+					  var ll0  = getprop("controls/lighting/landing-lights[0]");
+					  var ll1  = getprop("controls/lighting/landing-lights[1]");
+					  var ll2  = getprop("controls/lighting/landing-lights[2]");
+
+					  if ((ll0 == 0) or (ll1 == 0) or (ll2 == 0)) {
+						setprop("controls/lighting/landing-lights[0]", 1);  
+						setprop("controls/lighting/landing-lights[1]", 1);  
+						setprop("controls/lighting/landing-lights[2]", 1);  
+						setprop("/sim/messages/pilot", "Landing lights ... ON"); 
+					  } 
+
+				}
+				else if (aircraft == "737-300")  {
+					  var ll0  = getprop("controls/lighting/landing-lights-fixed-left");
+					  var ll1  = getprop("controls/lighting/landing-lights-fixed-right");
+					  var ll2  = getprop("controls/lighting/landing-lights-retract-left");
+					  var ll3  = getprop("controls/lighting/landing-lights-retract-right");
+
+					  if ((ll0 != "true") or (ll1 != "true") or (ll2 != "true") or (ll3 != "true")) {
+						setprop("controls/lighting/landing-lights-fixed-left", "true");  
+						setprop("controls/lighting/landing-lights-fixed-right", "true");  
+						setprop("controls/lighting/landing-lights-retract-left", "true");  
+						setprop("controls/lighting/landing-lights-retract-right", "true");  
+						setprop("/sim/messages/pilot", "Landing lights ... ON"); 
+					}
+				}
+
+				# Check Strobes
+				  debug.dump("Check Strobes");
+				  var strobes  = getprop("controls/lighting/strobe");
+
+				  if (strobes == 0) {
+					setprop("controls/lighting/strobe", 1);   
+					setprop("/sim/messages/pilot", "Strobes ... ON"); 
+				  } 
+
+
+				# Check Taxi Light
+				  debug.dump("Check Taxi Light");
+				  var strobes  = getprop("controls/lighting/taxi-lights");
+
+				  if (strobes == 0) {
+					setprop("controls/lighting/taxi-lights", 1);   
+					setprop("/sim/messages/pilot", "Taxi Lights ... ON"); 
+				  } 
+	
+				if ( getprop("velocities/groundspeed-kt") <100 ) {  # not when in air !!
+
+					# Check Flap Setting for take-off
+					debug.dump("Flap Setting for take-off");
+					
+					if (aircraft == "747-8i")  {
+						var flap_soll = 0.5;
+					}
+					else {
+						var flap_soll = 0.375;
+					}
+									
+					  var fs  = getprop("controls/flight/flaps");
+					  if (fs != flap_soll) {
+						  while (fs < flap_soll) {
+							controls.flapsDown(1);  
+		 					fs  = getprop("controls/flight/flaps");
+						  }
+						  while (fs > flap_soll) {
+							controls.flapsDown(-1);  
+		 					fs  = getprop("controls/flight/flaps");
+						  }
+
+					  setprop("/sim/messages/pilot", "Flaps set to for take off"); 
+
+					  } 
+
+					
+					# Check Auto-Brake Setting for Take-Off
+					debug.dump("Check Auto-Brake Setting for Take-Off");
+					if (aircraft == "747-8i" or  aircraft == "777-200ER") {
+						  var ab  = getprop("autopilot/autobrake/step");
+						  if (ab != -2) {
+						
+					    	  setprop("autopilot/autobrake/step",-2);
+
+						  setprop("/sim/messages/pilot", "Autobrake set for take off"); 
+
+						  } 
+					}
+
+					# Check Trim Setting
+					debug.dump("CheckTrim Setting");
+
+
+					if (aircraft == "747-8i")  {
+						var soll_trim = -180;
+					}
+					else if (aircraft == "737-300") {
+						var soll_trim = -75;
+					}
+					
+					else if (aircraft == "777-200ER") {
+						var soll_trim = -75;
+					}
+
+					var actual_trim = 1000*getprop("/controls/flight/elevator-trim");
+
+
+					if (actual_trim - soll_trim > abs(5)) {
+
+						while (actual_trim - soll_trim < 5) {
+							controls.elevatorTrim(1.5);
+							actual_trim = 1000*getprop("/controls/flight/elevator-trim");
+							gui.popupTip(sprintf("Elevator Trim Up: %d", actual_trim));
+
+						}
+						while (actual_trim - soll_trim > 5) {
+							controls.elevatorTrim(-1.5);
+							actual_trim = 1000*getprop("/controls/flight/elevator-trim");
+							gui.popupTip(sprintf("Elevator Trim Down: %d", actual_trim));
+
+						}
+
+					setprop("/sim/messages/pilot", "Setting Trim for Take-Off"); 
+
+					}
+
+
+					# Set QNH
+					debug.dump("Set QNH");
+					var ist_pressure_setting = getprop("/instrumentation/altimeter/setting-inhg");
+					var soll_pressure_setting = getprop("/environment/metar/pressure-inhg");
+					var metar_station = getprop("/environment/metar/station-id");
+
+					if (ist_pressure_setting != soll_pressure_setting) {
+
+					setprop("/instrumentation/altimeter/setting-inhg", soll_pressure_setting); 
+
+					setprop("/sim/messages/pilot", sprintf("Setting QNH to %d. %s elevation is: %d feet.",math.round(getprop("/instrumentation/altimeter/setting-hpa")),metar_station,getprop("/environment/metar/station-elevation-ft"))); 
+					}
+
+                    # Set cruise altitude
+
+                    setprop("/autopilot/settings/target-altitude-ft",getprop("/autopilot/route-manager/cruise/altitude-ft"));
+
+				}
+
+				# Calculate Range
+				debug.dump("Calculate Range");
+
+				if (aircraft == "747-8i")  {
+						var fuelburn = 22500; #lbs per hour
+					}
+				else if (aircraft == "777-200ER")  {
+						var fuelburn = 22000; #lbs per hour
+					}
+
+				else if (aircraft == "737-300") {
+						var fuelburn = 8000; #lbs per hour
+					}
+					
+				else if (left(aircraft,5) == "A330-") {
+							var fuelburn = 15000; #lbs per hour
+						}
+					
+				var gs = 470;
+				var total_lbs = getprop("/consumables/fuel/total-fuel-lbs");
+				var distance_flightplan = getprop("/autopilot/route-manager/distance-remaining-nm");
+				
+				var duration_possible = total_lbs / fuelburn;
+
+				var duration_possible_h = math.floor(duration_possible);
+				var duration_possible_m = (duration_possible-duration_possible_h)*60;
+
+				var distance_possible = duration_possible * gs;
+
+				var duration_flightplan = distance_flightplan / gs;
+				var duration_flightplan_h = math.floor(duration_flightplan);
+				var duration_flightplan_m = (duration_flightplan-duration_flightplan_h)*60;
+
+				var MEZ_time_h = getprop("/sim/time/real/hour");
+				var MEZ_time_m = getprop("/sim/time/real/minute");
+
+				var arrival_time_h = MEZ_time_h + duration_flightplan_h;
+				var arrival_time_m = MEZ_time_m + duration_flightplan_m;
+				
+				if (arrival_time_m >59) { 
+					arrival_time_m=arrival_time_m-60;
+					arrival_time_h = arrival_time_h +1;
+				}
+
+				if (arrival_time_h >23) { arrival_time_h=arrival_time_h-24;}
+
+				var soll_lbs = duration_flightplan * fuelburn;
+	
+				var dest_name = getprop("/autopilot/route-manager/destination/name");
+
+				if (distance_flightplan > 0) {
+
+					if (total_lbs-soll_lbs < 0) {
+						setprop("/sim/messages/pilot", sprintf("Distance: %d miles, Range: %d miles", distance_flightplan,distance_possible)); 
+						setprop("/sim/messages/pilot", sprintf("You need %d thousand pounds of fuel, you have %d thousand pounds", soll_lbs/1000,total_lbs/1000)); 
+					}
+
+					setprop("/sim/messages/pilot", sprintf("Our estimated flight time will be %d hours and %d minutes", duration_flightplan_h,duration_flightplan_m)); 		
+					setprop("/sim/messages/pilot", sprintf("Arrival at %s is estimated for %02d:%02d MEZ. Distance remaining: %d ",dest_name,arrival_time_h,arrival_time_m,distance_flightplan)); 
+
+				} else {
+
+					setprop("/sim/messages/pilot", sprintf("No flightplan activated. We can fly %d hours and %d minutes. Range: %d miles",duration_possible_h,duration_possible_m,distance_possible)); 
+
+				}
+
+          			  ]]>
+         		</script>
+		</binding>
+
+	    </key><!-- Edited by Manne -->
+		<key n="109">
+				<name>m</name>
+				<desc>Get METAR OF DESINATION</desc>
+				<exit/>
+				    <binding>
+					 <command>nasal</command>
+					 <script>
+					    <![CDATA[
+							# Get Metar of destination
+							debug.dump("Get Metar of destination");
+							
+							var icao_dest = getprop("/autopilot/route-manager/destination/airport");
+							var rwy_dest = getprop("/autopilot/route-manager/destination/runway");
+
+							if (icao_dest != getprop("/environment/metar[10]/station-id") ) {
+
+								setprop("/environment/metar[10]/station-id",icao_dest);
+								setprop("/environment/metar[10]/time-to-live",0);
+								setprop("/sim/messages/pilot", sprintf("Setting %s as Destination for enroute METAR information.",icao_dest));
+
+							} else {
+
+								setprop("/sim/messages/pilot", getprop("/environment/metar[10]/data"));
+								setprop("/sim/messages/pilot", sprintf("Your selected RWY at %s is: %s.",icao_dest,rwy_dest));
+
+							}
+
+							
+					    ]]>
+					 </script>
+				      </binding>
+			</key>
+
+<key n="114">
+				<name>r</name>
+				<desc>Calculate some route information</desc>
+				<exit/>
+				    <binding>
+					 <command>nasal</command>
+					 <script>
+					    <![CDATA[
+	
+						# Calculate Range
+						debug.dump("Calculate Range");
+
+						var aircraft = getprop("/sim/aero");
+
+						if (aircraft == "747-8i")  {
+								var fuelburn = 22500; #lbs per hour
+							}
+						if (aircraft == "777-200ER")  {
+								var fuelburn = 22000; #lbs per hour
+							}
+						else if (aircraft == "737-300") {
+								var fuelburn = 8000; #lbs per hour
+							}
+							
+						else if (left(aircraft,5) == "A330-") {
+								var fuelburn = 15000; #lbs per hour
+							}
+							
+						var gs = 470;
+						var total_lbs = getprop("/consumables/fuel/total-fuel-lbs");
+						var distance_flightplan = getprop("/autopilot/route-manager/distance-remaining-nm");
+				
+						var duration_possible = total_lbs / fuelburn;
+
+						var duration_possible_h = math.floor(duration_possible);
+						var duration_possible_m = (duration_possible-duration_possible_h)*60;
+
+						var distance_possible = duration_possible * gs;
+
+						var duration_flightplan = distance_flightplan / gs;
+						var duration_flightplan_h = math.floor(duration_flightplan);
+						var duration_flightplan_m = (duration_flightplan-duration_flightplan_h)*60;
+
+						var MEZ_time_h = getprop("/sim/time/real/hour");
+						var MEZ_time_m = getprop("/sim/time/real/minute");
+
+						var arrival_time_h = MEZ_time_h + duration_flightplan_h;
+						var arrival_time_m = MEZ_time_m + duration_flightplan_m;
+				
+						if (arrival_time_m >59) { 
+							arrival_time_m=arrival_time_m-60;
+							arrival_time_h = arrival_time_h +1;
+						}
+
+						if (arrival_time_h >23) { arrival_time_h=arrival_time_h-24;}
+
+						var soll_lbs = duration_flightplan * fuelburn;
+	
+						var dest_name = getprop("/autopilot/route-manager/destination/name");
+
+						if (distance_flightplan > 0) {
+
+							if (total_lbs-soll_lbs < 0) {
+								setprop("/sim/messages/pilot", sprintf("Distance: %d miles, Range: %d miles", distance_flightplan,distance_possible)); 
+								setprop("/sim/messages/pilot", sprintf("You need %d thousand pounds of fuel, you have %d thousand pounds", soll_lbs/1000,total_lbs/1000)); 
+							}
+
+							setprop("/sim/messages/pilot", sprintf("Our estimated flight time will be %d hours and %d minutes", duration_flightplan_h,duration_flightplan_m)); 		
+							setprop("/sim/messages/pilot", sprintf("Arrival at %s is estimated for %02d:%02d MEZ. Distance remaining: %d miles.",dest_name,arrival_time_h,arrival_time_m,distance_flightplan)); 
+
+						} else {
+
+							setprop("/sim/messages/pilot", sprintf("No flightplan activated. We can fly %d hours and %d minutes. Range: %d miles.",duration_possible_h,duration_possible_m,distance_possible)); 
+
+						}
+					    ]]>
+					 </script>
+				      </binding>
+			</key>
+</key>
+</PropertyList>
