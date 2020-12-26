@@ -167,6 +167,13 @@
 					    	setprop("autopilot/autobrake/step",-2);
 						  	setprop("/sim/messages/pilot", "Autobrake set for take off"); 
 						  } 
+					} 
+					else if (aircraft == "A330") {
+						var ab  = getprop("controls/autobrake/mode");
+						if (ab != -2) {						
+						  setprop("controls/autobrake/mode",3);
+							setprop("/sim/messages/pilot", "Autobrake set for take off"); 
+						} 
 					}
 
 
