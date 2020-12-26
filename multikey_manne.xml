@@ -134,6 +134,11 @@
 					if (aircraft == "747-8i")  {
 						var flap_soll = 0.5;
 					}
+
+					else (aircraft == "A330")  {
+						var flap_soll = 0.29;
+					}
+
 					else {
 						var flap_soll = 0.375;
 					}
