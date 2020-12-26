@@ -263,7 +263,7 @@
 						var fuelburn = 8000; #lbs per hour
 					}
 					
-				else if (left(aircraft) == "A330") {
+				else if (aircraft == "A330") {
 							var fuelburn = 15000; #lbs per hour
 						}
 					
