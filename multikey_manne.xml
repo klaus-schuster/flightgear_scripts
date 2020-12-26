@@ -135,7 +135,7 @@
 						var flap_soll = 0.5;
 					}
 
-					else (aircraft == "A330")  {
+					else if (aircraft == "A330")  {
 						var flap_soll = 0.29;
 					}
 
