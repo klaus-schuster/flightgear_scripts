@@ -169,6 +169,18 @@
 						  } 
 					}
 
+
+					# Check Speedbrake Setting Take-Off
+					debug.dump("Check Speedbrake Setting Take-Off");
+					if (aircraft == "A330") {
+						  var sp  = getprop("controls/flight/speedbrake-arm");
+						  if (ab != 1) {						
+							setprop("controls/flight/speedbrake-arm",1);
+							setprop("controls/flight/speedbrake",0);
+						  	setprop("/sim/messages/pilot", "Speedbrake set for take off"); 
+						  } 
+					}
+
 					# Check Trim Setting
 					debug.dump("CheckTrim Setting");
 					if (aircraft == "747-8i")  {
