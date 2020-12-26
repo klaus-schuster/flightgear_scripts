@@ -351,10 +351,20 @@ list1 = setlistener("/_manne/PHASE", func {
 		
 		
 		settimer(func(){
-			setprop("/controls/lighting/landing-lights[1]",0); # after 10 seconds
-			setprop("/controls/lighting/strobe",0);
-			setprop("/sim/messages/copilot","Landing Lights off");
-			setprop("/sim/messages/copilot","Strobes off");
+
+			if (aircraft == "A330") {
+				setprop("/controls/switches/landing-lights",0);
+				setprop("/sim/messages/copilot","Landing lights off");
+				### STROBES FEHLEN NOCH
+							
+			} else {
+				setprop("/controls/lighting/landing-lights[1]",0); # after 10 seconds
+				setprop("/controls/lighting/strobe",0);
+				setprop("/sim/messages/copilot","Landing Lights off");
+				setprop("/sim/messages/copilot","Strobes off");
+			}
+
+
 		}, 10);
 					
 		
@@ -369,7 +379,7 @@ list1 = setlistener("/_manne/PHASE", func {
 		settimer(func(){
 		    setprop("_manne/PHASE","START");
 			setprop("_manne/_autostop",0);
-		}, 2);
+		}, 10);
 		
 		
 		}
@@ -742,7 +752,7 @@ var timer_TOD = maketimer(3.0, func { #Timer für TOD Berechnung und Descent Pha
 			setprop("controls/flight/speedbrake",1);
 			setprop("/sim/messages/copilot", "Setting speedbrake to FULL");
 		}
-		else if (kts - kts_soll > 15 and kts - kts_soll < 25 and getprop("controls/flight/speedbrake") = 0) { #speedbrake HALF setzen
+		else if (kts - kts_soll > 15 and kts - kts_soll < 25 and getprop("controls/flight/speedbrake") == 0) { #speedbrake HALF setzen
 			setprop("controls/flight/speedbrake-arm",0);
 			setprop("controls/flight/speedbrake",0.5);
 			setprop("/sim/messages/copilot", "Setting speedbrake to HALF");
