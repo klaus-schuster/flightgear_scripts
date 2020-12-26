@@ -666,7 +666,7 @@ var timer_qnh_setting = maketimer(10.0, func {
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # timer_descent # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-var timer_TOD = maketimer(3.0, func {
+var timer_TOD = maketimer(3.0, func { #Timer für TOD Berechnung und Descent Phase
 
 	var distance = getprop("/_manne/distance");
 
@@ -680,7 +680,7 @@ var timer_TOD = maketimer(3.0, func {
 
 	# # # descent rate calaculations # # #
 
-	var descent_rate = getprop("/velocities/groundspeed-kt") * 5.2;
+	var descent_rate = getprop("/velocities/groundspeed-kt") * 4.5; # original 5.2 jetzt testweise 4.5
 	descent_rate = math.ceil(descent_rate / 200) * 200;
 
 	setprop("_manne/descent_rate", math.floor(descent_rate));
@@ -731,6 +731,31 @@ var timer_TOD = maketimer(3.0, func {
 		}
 		
 	}
+
+	#A330 Speedbrake Management during descent
+	if (getprop("_manne/PHASE") == "DESCENT" and aircraft == "A330") {
+		var kts = getprop("/instrumentation/airspeed-indicator/indicated-speed-kt");
+		var kts_soll = getprop(getprop("/_manne/cfg/kts"));
+
+		if (kts - kts_soll > 30 and getprop("controls/flight/speedbrake") != 1) { #speedbrake FULL setzen
+			setprop("controls/flight/speedbrake-arm",0);
+			setprop("controls/flight/speedbrake",1);
+			setprop("/sim/messages/copilot", "Setting speedbrake to FULL");
+		}
+		else if (kts - kts_soll > 15 and kts - kts_soll < 25 and getprop("controls/flight/speedbrake") = 0) { #speedbrake HALF setzen
+			setprop("controls/flight/speedbrake-arm",0);
+			setprop("controls/flight/speedbrake",0.5);
+			setprop("/sim/messages/copilot", "Setting speedbrake to HALF");
+		}
+		else if (kts - kts_soll <= 5 and getprop("controls/flight/speedbrake") != 0) { #speedbrake release
+			setprop("controls/flight/speedbrake",0);
+			setprop("/sim/messages/copilot", "Releasing speedbrake");
+		}
+
+	}
+
+
+
 	if (getprop("_manne/PHASE") == "DESCENT"
 		and TOD_distance - distance <= -1 and - 1 * descent_rate != getprop(getprop("/_manne/cfg/vs"))) {
 		setprop("/sim/messages/pilot", "Adjusting rate of descent!");
