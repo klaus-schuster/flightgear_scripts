@@ -167,9 +167,12 @@ list1 = setlistener("/_manne/PHASE", func {
 		
 		if (aircraft == "A330") {
 			
-			#autobrake
+			#autobrake + speedbrake armed
 			setprop("/controls/autobrake/mode",2);
 			setprop("/sim/messages/copilot", "Setting Autobrake to Medium!");
+			setprop("controls/flight/speedbrake",0);
+			setprop("controls/flight/speedbrake-arm",1);
+			setprop("/sim/messages/pilot", "Speedbrake armed"); 
 			
 		}
 		
