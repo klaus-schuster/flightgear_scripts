@@ -56,6 +56,11 @@
 
 				var aircraft = getprop("/sim/aero");
 
+				if (left(aircraft,5) == "A330-") {
+					aircraft = "A330";
+				}
+
+
                 setprop("_manne/PHASE", "START");
   
 				# Check Landing Lights
@@ -92,6 +97,16 @@
 					}
 				}
 
+				else if (aircraft == "A330")  {
+					  var ll0  = getprop("controls/switches/landing-lights");
+
+					  if (ll0 == 0) {
+						setprop("controls/switches/landing-lights", 1);  
+						setprop("/sim/messages/pilot", "Landing lights ... ON"); 
+					  } 
+
+				}
+
 				# Check Strobes
 				  debug.dump("Check Strobes");
 				  var strobes  = getprop("controls/lighting/strobe");
@@ -123,39 +138,34 @@
 						var flap_soll = 0.375;
 					}
 									
-					  var fs  = getprop("controls/flight/flaps");
-					  if (fs != flap_soll) {
-						  while (fs < flap_soll) {
-							controls.flapsDown(1);  
-		 					fs  = getprop("controls/flight/flaps");
-						  }
-						  while (fs > flap_soll) {
-							controls.flapsDown(-1);  
-		 					fs  = getprop("controls/flight/flaps");
-						  }
+					var fs  = getprop("controls/flight/flaps");
+					if (fs != flap_soll) {
+						while (fs < flap_soll) {
+						controls.flapsDown(1);  
+						fs  = getprop("controls/flight/flaps");
+						}
+						while (fs > flap_soll) {
+						controls.flapsDown(-1);  
+						fs  = getprop("controls/flight/flaps");
+						}
 
-					  setprop("/sim/messages/pilot", "Flaps set to for take off"); 
+					setprop("/sim/messages/pilot", "Flaps set to for take off"); 
 
-					  } 
+				} 
 
 					
 					# Check Auto-Brake Setting for Take-Off
 					debug.dump("Check Auto-Brake Setting for Take-Off");
 					if (aircraft == "747-8i" or  aircraft == "777-200ER") {
 						  var ab  = getprop("autopilot/autobrake/step");
-						  if (ab != -2) {
-						
-					    	  setprop("autopilot/autobrake/step",-2);
-
-						  setprop("/sim/messages/pilot", "Autobrake set for take off"); 
-
+						  if (ab != -2) {						
+					    	setprop("autopilot/autobrake/step",-2);
+						  	setprop("/sim/messages/pilot", "Autobrake set for take off"); 
 						  } 
 					}
 
 					# Check Trim Setting
 					debug.dump("CheckTrim Setting");
-
-
 					if (aircraft == "747-8i")  {
 						var soll_trim = -180;
 					}
@@ -166,6 +176,12 @@
 					else if (aircraft == "777-200ER") {
 						var soll_trim = -75;
 					}
+
+					else if (aircraft == "A330") {
+						var soll_trim = -70;
+					}
+
+					else { var soll_trim = 0; }
 
 					var actual_trim = 1000*getprop("/controls/flight/elevator-trim");
 
@@ -223,7 +239,7 @@
 						var fuelburn = 8000; #lbs per hour
 					}
 					
-				else if (left(aircraft,5) == "A330-") {
+				else if (left(aircraft) == "A330") {
 							var fuelburn = 15000; #lbs per hour
 						}
 					
@@ -337,7 +353,7 @@
 								var fuelburn = 8000; #lbs per hour
 							}
 							
-						else if (left(aircraft,5) == "A330-") {
+						else if (aircraft) == "A330") {
 								var fuelburn = 15000; #lbs per hour
 							}
 							
