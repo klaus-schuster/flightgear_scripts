@@ -1,6 +1,5 @@
 
 # Flaps aus multikey abgucken (while)
-# multikey take-off läuft nicht
 # after take off - ap richtig einstellen noch nicht ganz automatisiert.
 # fertig - thrust zu. idle setzen, nach touchdown?? (kommen sonst die spoiler nicht raus?)
 #
@@ -92,6 +91,7 @@ var list3 = setlistener("_manne/PHASE", func {
 	print("list3 init...");
 }, 0, 0);
 removelistener(list3);
+
 
 
 ###PHASE Listener
@@ -514,7 +514,9 @@ var timer_update_properties = maketimer(3.0, func {
 	setprop("_manne/arrival_MEZ", sprintf("%02d:%02d", arrival_time_h, arrival_time_m, ));
 	setprop("_manne/range", distance_possible);
 	setprop("_manne/distance", math.floor(getprop("/autopilot/route-manager/distance-remaining-nm")));
-	setprop("_manne/metar_dest", getprop("/environment/metar[10]/data"));
+	if (getprop("/environment/metar[10]/data") != getprop("/_manne/metar_dest")) {
+		setprop("_manne/metar_dest", getprop("/environment/metar[10]/data"));
+	}
 	setprop("_manne/metar_local", getprop("/environment/metar/data"));
 	setprop("_manne/mach", getprop("/instrumentation/airspeed-indicator/indicated-mach"));
 	setprop("_manne/kts", math.floor(getprop("/instrumentation/airspeed-indicator/indicated-speed-kt")));
@@ -654,6 +656,7 @@ var timer_qnh_setting = maketimer(10.0, func {
 		setprop("/environment/metar[10]/station-id", getprop("/autopilot/route-manager/destination/airport"));
 		setprop("/environment/metar[10]/time-to-live", 0);
 		setprop("/sim/messages/pilot", "Requesting METAR information at destination....");
+		
 	}
 	# # # set METAR of destination / or local value, depending on distance # # #
 	else if (ist_pressure_setting != soll_pressure_setting and altitude_ist < trams_alt) {
@@ -816,6 +819,28 @@ var timer_Climb = maketimer(3.0, func {
 		setprop("/_manne/PHASE", "CLIMB");
 	}
 
+});
+
+# # # # # # # # # # # # # # # # # # detecting changed Destination # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+var list_dest = setlistener("/autopilot/route-manager/destination/airport", func {
+	var destination = getprop("autopilot/route-manager/destination/airport");
+	if (destination != "") {
+		var runways = airportinfo(getprop("autopilot/route-manager/destination/airport")).runways;
+		var message_gui = "";
+		foreach (rw; keys(runways)) {
+			message_gui = message_gui ~ rw ~ ': ' ~ 'ILS: '~ sprintf("%.2f", runways[rw].ils_frequency_mhz) ~ ' / Length: ' ~ runways[rw].length ~ " m" ~ "\n";
+		}
+		gui.popupTip(message_gui);
+	}
+});
+
+# # # # # # # # # # # # # # # # # # detecting changed METAR @ Destinaltion # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+var list_dest_metar = setlistener("/_manne/metar_dest", func {
+	if (getprop("/_manne/metar_dest") != "") {
+		setprop("/sim/messages/copilot",getprop("/_manne/metar_dest"));
+	}
 });
 
 # # # # # # # # # # # # # # # # # # detecting slow after bremsen # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
