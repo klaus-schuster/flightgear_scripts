@@ -188,6 +188,17 @@
 						  } 
 					}
 
+					# Check Autopilot Setting Take-Off
+					debug.dump("Check Autopilot Setting Take-Off");
+					if (aircraft == "A330") {
+						  var sp  = getprop("it-autoflight/input/lat");
+						  if (sp != 1) {						
+							setprop("it-autoflight/input/lat",1);
+							setprop("/sim/messages/copilot", "Autopilot in Lateral Mode"); 
+						  } 
+					}
+		
+
 					# Check Trim Setting
 					debug.dump("CheckTrim Setting");
 					if (aircraft == "747-8i")  {
