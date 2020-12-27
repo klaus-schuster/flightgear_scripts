@@ -198,10 +198,10 @@ list1 = setlistener("/_manne/PHASE", func {
 		if (aircraft == "A330") {
 			setprop("/controls/gear/gear-down","false");
 			setprop("/sim/messages/copilot", "Gear up");
-			setprop("it-autoflight/input/lat",1);
 			setprop("it-autoflight/input/ap1",1);
 			setprop("it-autoflight/input/spd-kts",170);	
 			setprop("it-autoflight/input/vert",4);
+			setprop("/controls/flight/rudder", 0);
 			setprop("/sim/messages/pilot", "Autopilot engaged!");
 			
 			settimer(func(){
