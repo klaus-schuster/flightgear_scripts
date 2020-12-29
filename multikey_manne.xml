@@ -367,17 +367,21 @@
 
 						var aircraft = getprop("/sim/aero");
 
+
+						if (left(aircraft,5) == "A330-") {
+							aircraft = "A330";
+						}
+
 						if (aircraft == "747-8i")  {
 								var fuelburn = 22500; #lbs per hour
 							}
-						if (aircraft == "777-200ER")  {
+						else if (aircraft == "777-200ER")  {
 								var fuelburn = 22000; #lbs per hour
 							}
 						else if (aircraft == "737-300") {
 								var fuelburn = 8000; #lbs per hour
 							}
-							
-						else if (aircraft) == "A330") {
+						else if (aircraft == "A330") {
 								var fuelburn = 15000; #lbs per hour
 							}
 							
